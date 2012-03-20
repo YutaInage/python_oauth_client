@@ -1,0 +1,12 @@
+#
+# OAuth client with python
+# 
+
+# Overview
+It is OAuth client with Pyhton for my practice.
+Operation check with Twitter only.
+
+# Environment
+* Python 2.5
+* You MUST make empty "callback URL" in Twitter when you use this client.
+ 
