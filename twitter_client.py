@@ -38,7 +38,16 @@ class twitter_client(oauth_client.oauth_client):
         ret = self.create_oauth_signature("GET", self.signature_keys)
 
         url = self.create_request_token_url(self.request_token_keys)
-        resp = urllib2.urlopen(url)
+
+        try:
+            resp = urllib2.urlopen(url)
+        except urllib2.HTTPError, e:
+            print "[error] Failed request token authorize (HTTP code " + str(e.code) + ")"
+            return ""
+        except urllib2.URLError, e:
+            print "[error] URL error"
+            return ""
+
         resp_data = resp.read()
         self.parse_request_token(resp_data)
 
@@ -55,7 +64,16 @@ class twitter_client(oauth_client.oauth_client):
         self.create_oauth_nonce()
         ret = self.create_oauth_signature("GET", self.signature_keys)
         url = self.create_access_token_url(self.access_token_keys)
-        resp = urllib2.urlopen(url)
+
+        try:
+            resp = urllib2.urlopen(url)
+        except urllib2.HTTPError, e:
+            print "[error] Failed access token authorize (HTTP code " + str(e.code) + ")"
+            return ""
+        except urllib2.URLError, e:
+            print "[error] URL error"
+            return ""
+
         resp_data = resp.read()
         result = self.parse_access_token(resp_data)
 
