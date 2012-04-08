@@ -29,6 +29,7 @@ class oauth_client:
     "oauth_signature_method" : "",
     "oauth_signature" : "",
     "oauth_callback" : "",
+    "status" : "",
     "user_id" : "",
     "screen_name" : ""
     }
@@ -40,7 +41,8 @@ class oauth_client:
     "oauth_timestamp",
     "oauth_token",
     "oauth_verifier",
-    "oauth_version"
+    "oauth_version",
+    "status"
     ]
 
     request_token_keys = [
@@ -55,7 +57,7 @@ class oauth_client:
 
     access_token_keys = [
     "oauth_consumer_key",
-        "oauth_token",
+    "oauth_token",
     "oauth_timestamp",
     "oauth_nonce",
     "oauth_signature_method",
@@ -71,11 +73,17 @@ class oauth_client:
     def set_oauth_verifier(self, in_verifier):
         self.auth_data["oauth_verifier"] = in_verifier
 
+    def set_oauth_token(self, in_token):
+        self.auth_data["oauth_token"] = in_token
+
+    def set_oauth_token_secret(self, in_secret):
+        self.auth_data["oauth_token_secret"] = in_secret
+
     def create_oauth_nonce(self):
         nonce_seed = str(random.random())
         self.auth_data["oauth_nonce"] = hashlib.md5(nonce_seed).hexdigest()
 
-    def create_oauth_signature(self, in_method, in_keys):
+    def create_oauth_signature(self, in_method, in_url, in_keys):
         if in_method != "GET" and in_method != "POST":
             print "[error] inval method"
             return False
@@ -90,7 +98,7 @@ class oauth_client:
 
         signature_base_str = in_method
         signature_base_str += "&"
-        signature_base_str += urllib2.quote(self.auth_data["request_token_url"], "")
+        signature_base_str += urllib2.quote(in_url, "")
         signature_base_str += "&"
         signature_base_str += urllib2.quote(params, "")
 
