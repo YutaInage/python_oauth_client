@@ -83,16 +83,22 @@ class oauth_client:
         nonce_seed = str(random.random())
         self.auth_data["oauth_nonce"] = hashlib.md5(nonce_seed).hexdigest()
 
-    def create_oauth_signature(self, in_method, in_url, in_keys):
+    def create_oauth_signature(self, in_method, in_url, in_keys, in_ext_data = None):
         if in_method != "GET" and in_method != "POST":
             print "[error] inval method"
             return False
 
         self.auth_data["oauth_timestamp"] = str(int(time.time()))
+
         params = ""
+        if in_ext_data is None:
+            in_ext_data = {"":""}
+
         for key in sorted(in_keys):
-            if len(self.auth_data[key]) > 0:
+            if self.auth_data.has_key(key) and len(self.auth_data[key]) > 0:
                 params += key + "=" + self.auth_data[key] + "&"
+            if in_ext_data.has_key(key) and len(in_ext_data[key]) > 0:
+                params += key + "=" + in_ext_data[key] + "&"
             
         params = params.rstrip("&")
 

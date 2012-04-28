@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import urllib
 import urllib2
 
@@ -82,7 +83,7 @@ class twitter_auth(oauth_client.oauth_client):
 
 
 class twitter_client(oauth_client.oauth_client):
-    post_header_keys = [
+    auth_header_keys = [
         "oauth_consumer_key",
         "oauth_token",
         "oauth_version",
@@ -99,18 +100,18 @@ class twitter_client(oauth_client.oauth_client):
         self.auth_data["oauth_signature_method"] = "HMAC-SHA1"
         self.auth_data["oauth_version"] = "1.0"
 
-    def create_post_header(self):
-        post_header = "OAuth "
-        for key in self.post_header_keys:
+    def create_auth_header(self):
+        header = "OAuth "
+        for key in self.auth_header_keys:
             if len(self.auth_data[key]) > 0:
-                post_header += key
-                post_header += "=\""
-                post_header += self.auth_data[key]
-                post_header += "\", "
+                header += key
+                header += "=\""
+                header += self.auth_data[key]
+                header += "\", "
 
-        post_header = post_header.rstrip(", ")
+        header = header.rstrip(", ")
 
-        return post_header
+        return header
 
     def write_tweet(self, in_message):
         twitter_update_url = "https://api.twitter.com/1/statuses/update.json"
@@ -122,33 +123,69 @@ class twitter_client(oauth_client.oauth_client):
         self.create_oauth_nonce()
         self.create_oauth_signature("POST", twitter_update_url, self.signature_keys)
 
-        post_header = self.create_post_header()
+        post_header = self.create_auth_header()
         req = urllib2.Request(twitter_update_url)
         req.add_header("Authorization", post_header)
         req.add_data("status=" + msg)
 
-        try:
-            resp = urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
-            print "[error] Failed send tweet (HTTP code " + str(e.code) + ")"
-        except urllib2.URLError, e:
-            print "[error] Error URL"
+        resp = urllib2.urlopen(req)
 
     def read_tweet(self):
         print "unimplemented"
 
+    def get_timeline(self, in_query = None):
+
+        if in_query == None:
+            in_query = {}
+
+        keys = self.signature_keys + in_query.keys()
+        twitter_timeline_url = "https://api.twitter.com/1/statuses/home_timeline.json"
+
+        self.create_oauth_nonce()
+        self.create_oauth_signature("GET", twitter_timeline_url, keys, in_query)
+
+        auth_header = self.create_auth_header()
+
+        query = urllib.urlencode(in_query)
+        req = urllib2.Request(twitter_timeline_url + "?" + query)
+        req.add_header("Authorization", auth_header)
+
+        resp = urllib2.urlopen(req)
+        
+        return resp.read()
+
+
+
 # OAuth sample application
-twitter = twitter_auth()
-twitter.set_consumer_key("")
-twitter.set_consumer_secret("")
-result = twitter.get_auth_result()
-print result
+#twitter = twitter_auth()
+#twitter.set_consumer_key("")
+#twitter.set_consumer_secret("")
+
+#try:
+#    result = twitter.get_auth_result()
+
+#except urllib2.HTTPError, e:
+#    print "[error] Failed send tweet (HTTP code " + str(e.code) + ")"
+
+#except urllib2.URLError, e:
+#    print "[error] Error URL"
+
+#else:
+#    print result
 
 # tweet sample application
 twitter = twitter_client()
-twitter.set_consumer_key("")
-twitter.set_consumer_secret("")
-twitter.set_oauth_token("")
-twitter.set_oauth_token_secret("")
-twitter.write_tweet("tweet message")
+
+ext_query= {"count" : "1"}
+
+try:
+    #twitter.write_tweet("てすと")
+    print twitter.get_timeline(ext_query)
+
+except urllib2.HTTPError, e:
+    print "[error] Failed send tweet (HTTP code " + str(e.code) + ")"
+
+except urllib2.URLError, e:
+    print "[error] Error URL"
+
 
